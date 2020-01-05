@@ -8,6 +8,14 @@
 /// For more guidance on Substrate modules, see the example module
 /// https://github.com/paritytech/substrate/blob/master/srml/example/src/lib.rs
 
+extern crate parity_crypto as crypto;
+extern crate parity_bytes as bytes;
+use codec::{Encode, Decode};
+mod database;
+mod types;
+
+// use database::PermissionDatabase;
+
 use support::{decl_module, decl_storage, decl_event, dispatch::Result};
 use system::ensure_signed;
 
@@ -17,6 +25,7 @@ pub trait Trait: system::Trait {
 
 	/// The overarching event type.
 	type Event: From<Event<Self>> + Into<<Self as system::Trait>::Event>;
+	type EncryptedDocumentKey: Encode + Decode;
 }
 
 // This module's storage items.
@@ -44,8 +53,6 @@ decl_module! {
 			// TODO: You only need this if you want to check it was signed.
 			let who = ensure_signed(origin)?;
 
-			// TODO: Code to execute when something calls this.
-			// For example: the following line stores the passed in u32 in the storage
 			Something::put(something);
 
 			// here we are raising the Something event
@@ -111,6 +118,7 @@ mod tests {
 	}
 	impl Trait for Test {
 		type Event = ();
+		type EncryptedDocumentKey = bytes::Bytes;
 	}
 	type TemplateModule = Module<Test>;
 

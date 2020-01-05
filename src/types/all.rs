@@ -1,15 +1,14 @@
 use std::collections::BTreeMap;
-
-use {bytes, primitives};
+use parity_crypto::publickey::Address;
 
 /// Node id.
 pub type NodeId = crypto::publickey::Public;
 /// Server key id. When key is used to encrypt document, it could be document contents hash.
-pub type ServerKeyId = primitives::H256;
+pub type ServerKeyId = primitive_types::H256;
 /// Encrypted document key type.
 pub type EncryptedDocumentKey = bytes::Bytes;
 /// Message hash.
-pub type MessageHash = primitives::H256;
+pub type MessageHash = primitive_types::H256;
 /// Message signature.
 pub type EncryptedMessageSignature = bytes::Bytes;
 /// Request signature type.
@@ -96,7 +95,7 @@ pub enum Requester {
 	/// Requested with public key.
 	Public(crypto::publickey::Public),
 	/// Requested with verified address.
-	Address(primitives::Address),
+	Address(Address),
 }
 
 impl Default for Requester {
@@ -127,14 +126,14 @@ impl From<crypto::publickey::Signature> for Requester {
 	}
 }
 
-impl From<primitives::Public> for Requester {
-	fn from(public: primitives::Public) -> Requester {
+impl From<crypto::publickey::Public> for Requester {
+	fn from(public: crypto::publickey::Public) -> Requester {
 		Requester::Public(public)
 	}
 }
 
-impl From<primitives::Address> for Requester {
-	fn from(address: primitives::Address) -> Requester {
+impl From<Address> for Requester {
+	fn from(address: Address) -> Requester {
 		Requester::Address(address)
 	}
 }

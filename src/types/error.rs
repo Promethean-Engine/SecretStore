@@ -17,6 +17,7 @@
 use std::fmt;
 use std::net;
 use std::io::Error as IoError;
+use serde::{Serialize, Deserialize};
 
 use crypto;
 
