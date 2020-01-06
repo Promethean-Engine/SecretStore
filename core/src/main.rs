@@ -1,10 +1,11 @@
-extern crate parity_crypto as crypto;
 extern crate parity_bytes as bytes;
-use codec::{Encode, Decode};
+extern crate parity_crypto as crypto;
+
+use codec::{Decode, Encode};
+
 mod database;
-mod types;
+mod keys;
 mod math;
+mod types;
 
-fn main() {
-
-}
+fn main() {}
