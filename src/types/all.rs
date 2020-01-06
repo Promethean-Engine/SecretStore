@@ -7,6 +7,8 @@ pub type NodeId = crypto::publickey::Public;
 pub type ServerKeyId = primitive_types::H256;
 /// Encrypted document key type.
 pub type EncryptedDocumentKey = bytes::Bytes;
+/// Unecrypted document key type.
+pub type DocumentKey = bytes::Bytes;
 /// Message hash.
 pub type MessageHash = primitive_types::H256;
 /// Message signature.
