@@ -15,7 +15,7 @@
 // along with Parity Ethereum.  If not, see <http://www.gnu.org/licenses/>.
 
 use crypto::publickey::{Public, Secret, Signature, Random, Generator, ec_math_utils};
-use primitive_types::{H256, U256, BigEndianHash};
+use primitive_types::{H256, U256};
 use hash::keccak;
 use key_server_cluster::Error;
 
@@ -33,11 +33,16 @@ pub fn zero_scalar() -> Secret {
 	Secret::zero()
 }
 
+// TODO: TEST THIS FUNCTION
 /// Convert hash to EC scalar (modulo curve order).
 pub fn to_scalar(hash: H256) -> Result<Secret, Error> {
-	let scalar: U256 = hash.into_uint();
-	let scalar: H256 = BigEndianHash::from_uint(&(scalar % *ec_math_utils::CURVE_ORDER));
-	let scalar = Secret::from(scalar.0);
+	let scalar: U256 = U256::from(hash.as_bytes());
+	let mut be_scalar: [u8; 32] = [0; 32];
+	// scalar.to_big_endian(&mut be_scalar.as_slice());
+	let value: U256 = scalar % *ec_math_utils::CURVE_ORDER;
+	value.to_big_endian(&mut be_scalar);
+	let h = H256::from(&be_scalar);
+	let scalar = Secret::from(h.0);
 	scalar.check_validity()?;
 	Ok(scalar)
 }
