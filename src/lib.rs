@@ -10,6 +10,8 @@
 
 extern crate parity_crypto as crypto;
 extern crate parity_bytes as bytes;
+extern crate keccak_hash as hash;
+
 use codec::{Encode, Decode};
 mod database;
 mod types;
