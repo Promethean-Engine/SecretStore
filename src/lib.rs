@@ -13,6 +13,7 @@ extern crate parity_bytes as bytes;
 extern crate keccak_hash as hash;
 
 use codec::{Encode, Decode};
+
 mod database;
 mod types;
 mod math;
