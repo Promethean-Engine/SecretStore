@@ -1,0 +1,20 @@
+[package]
+name = "secret-storage"
+version = "0.1.0"
+authors = ["Sean Batzel <romulus108@protonmail.com>"]
+edition = "2018"
+
+[dependencies]
+parity-crypto = { version = "0.4.2", features = ["publickey"] }
+parity-bytes = "0.1"
+primitive-types = "0.6.1"
+hash = { version = "0.4.0", package = "keccak-hash" }
+serde = { version = "1.0", features = ["derive"] }
+codec = { version = "1.1", features = ["derive"], package = "parity-scale-codec" }
+
+# Subtrate, 6e0a4877afbe2309e106b84333bb70200531b604
+support = { git = 'https://github.com/paritytech/substrate', package = "frame-support", rev = "6e0a4877afbe2309e106b84333bb70200531b604" }
+system = { git = 'https://github.com/paritytech/substrate', package = "frame-system", rev = "6e0a4877afbe2309e106b84333bb70200531b604"  }
+sr-primitives = { git = 'https://github.com/paritytech/substrate', package = "sp-runtime", rev = "6e0a4877afbe2309e106b84333bb70200531b604" }
+runtime-io = {  git = 'https://github.com/paritytech/substrate', package ="sp-io",  rev = "6e0a4877afbe2309e106b84333bb70200531b604" }
+primitives = { git = 'https://github.com/paritytech/substrate', package = "sp-core",  rev = "6e0a4877afbe2309e106b84333bb70200531b604" }
