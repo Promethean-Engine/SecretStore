@@ -17,7 +17,7 @@
 use crypto::publickey::{Public, Secret, Signature, Random, Generator, ec_math_utils};
 use primitive_types::{H256, U256};
 use hash::keccak;
-use key_server_cluster::Error;
+use crate::types::Error;
 
 /// Encryption result.
 #[derive(Debug)]
