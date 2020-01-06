@@ -1,5 +1,5 @@
 [package]
-name = "secret_storage"
+name = "secret_store"
 version = "0.1.0"
 authors = ["Sean Batzel <romulus108@protonmail.com>"]
 edition = "2018"
