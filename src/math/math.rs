@@ -483,7 +483,7 @@ pub fn serialize_ecdsa_signature(nonce_public: &Public, signature_r: Secret, mut
 	// compute recovery param
 	let mut signature_v = {
 		let nonce_public_x = public_x(nonce_public);
-		let nonce_public_y: U256 = public_y(nonce_public).into_uint();
+		let nonce_public_y: U256 = U256::from(public_y(nonce_public).as_bytes());
 		let nonce_public_y_is_odd = !(nonce_public_y % 2).is_zero();
 		let bit0 = if nonce_public_y_is_odd { 1u8 } else { 0u8 };
 		let bit1 = if nonce_public_x != *signature_r { 2u8 } else { 0u8 };
@@ -492,9 +492,12 @@ pub fn serialize_ecdsa_signature(nonce_public: &Public, signature_r: Secret, mut
 
 	// fix high S
 	let curve_order_half = *ec_math_utils::CURVE_ORDER / 2;
-	let s_numeric: U256 = (*signature_s).into_uint();
+	let s_numeric: U256 = U256::from((*signature_s).as_bytes());
 	if s_numeric > curve_order_half {
-		let signature_s_hash: H256 = BigEndianHash::from_uint(&(*ec_math_utils::CURVE_ORDER - s_numeric));
+		let value: U256 = *ec_math_utils::CURVE_ORDER - s_numeric;
+		let mut be_scalar: [u8; 32] = [0; 32];
+		value.to_big_endian(&mut be_scalar);
+		let signature_s_hash: H256 = H256::from(&be_scalar);
 		signature_s = signature_s_hash.into();
 		signature_v ^= 1;
 	}
