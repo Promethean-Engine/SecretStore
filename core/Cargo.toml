@@ -11,6 +11,9 @@ primitive-types = "0.6.1"
 hash = { version = "0.4.0", package = "keccak-hash" }
 serde = { version = "1.0", features = ["derive"] }
 codec = { version = "1.1", features = ["derive"], package = "parity-scale-codec" }
+jsonrpc-core = "14.0.5"
+jsonrpc-core-client = "14.0.5"
+jsonrpc-derive = "14.0.5"
 
 # Subtrate, 6e0a4877afbe2309e106b84333bb70200531b604
 support = { git = 'https://github.com/paritytech/substrate', package = "frame-support", rev = "6e0a4877afbe2309e106b84333bb70200531b604" }
