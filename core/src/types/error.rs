@@ -19,7 +19,7 @@ use std::fmt;
 use std::io::Error as IoError;
 use std::net;
 
-use crypto;
+use parity_crypto;
 
 /// Secret store error.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -77,7 +77,7 @@ pub enum Error {
     HasActiveSessions,
     /// Insufficient requester data.
     InsufficientRequesterData(String),
-    /// Cryptographic error.
+    /// parity_cryptographic error.
     EthKey(String),
     /// I/O error has occurred.
     Io(String),
@@ -168,7 +168,7 @@ impl fmt::Display for Error {
             Error::InsufficientRequesterData(ref e) => {
                 write!(f, "Insufficient requester data: {}", e)
             }
-            Error::EthKey(ref e) => write!(f, "cryptographic error {}", e),
+            Error::EthKey(ref e) => write!(f, "parity_cryptographic error {}", e),
             Error::Hyper(ref msg) => write!(f, "Hyper error: {}", msg),
             Error::Serde(ref msg) => write!(f, "Serialization error: {}", msg),
             Error::Database(ref msg) => write!(f, "Database error: {}", msg),
@@ -178,14 +178,14 @@ impl fmt::Display for Error {
     }
 }
 
-impl From<crypto::publickey::Error> for Error {
-    fn from(err: crypto::publickey::Error) -> Self {
+impl From<parity_crypto::publickey::Error> for Error {
+    fn from(err: parity_crypto::publickey::Error) -> Self {
         Error::EthKey(err.into())
     }
 }
 
-impl From<crypto::Error> for Error {
-    fn from(err: crypto::Error) -> Self {
+impl From<parity_crypto::Error> for Error {
+    fn from(err: parity_crypto::Error) -> Self {
         Error::EthKey(err.to_string())
     }
 }

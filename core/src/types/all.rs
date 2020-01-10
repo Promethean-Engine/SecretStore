@@ -2,7 +2,7 @@ use parity_crypto::publickey::Address;
 use std::collections::BTreeMap;
 
 /// Node id.
-pub type NodeId = crypto::publickey::Public;
+pub type NodeId = parity_crypto::publickey::Public;
 /// Server key id. When key is used to encrypt document, it could be document contents hash.
 pub type ServerKeyId = primitive_types::H256;
 /// Encrypted document key type.
@@ -14,9 +14,9 @@ pub type MessageHash = primitive_types::H256;
 /// Message signature.
 pub type EncryptedMessageSignature = bytes::Bytes;
 /// Request signature type.
-pub type RequestSignature = crypto::publickey::Signature;
+pub type RequestSignature = parity_crypto::publickey::Signature;
 /// Public key type.
-pub use crypto::publickey::Public;
+pub use parity_crypto::publickey::Public;
 
 /// Secret store configuration
 #[derive(Debug, Clone)]
@@ -33,7 +33,7 @@ pub enum ContractAddress {
     /// Address is read from registry.
     Registry,
     /// Address is specified.
-    Address(crypto::publickey::Address),
+    Address(parity_crypto::publickey::Address),
 }
 
 /// Secret store configuration
@@ -65,7 +65,7 @@ pub struct ClusterConfiguration {
     /// This node address.
     pub listener_address: NodeAddress,
     /// All cluster nodes addresses.
-    pub nodes: BTreeMap<crypto::publickey::Public, NodeAddress>,
+    pub nodes: BTreeMap<parity_crypto::publickey::Public, NodeAddress>,
     /// Key Server Set contract address. If None, servers from 'nodes' map are used.
     pub key_server_set_contract_address: Option<ContractAddress>,
     /// Allow outbound connections to 'higher' nodes.
@@ -82,9 +82,9 @@ pub struct ClusterConfiguration {
 #[derive(Clone, Debug, PartialEq)]
 pub struct EncryptedDocumentKeyShadow {
     /// Decrypted secret point. It is partially decrypted if shadow decryption was requested.
-    pub decrypted_secret: crypto::publickey::Public,
+    pub decrypted_secret: parity_crypto::publickey::Public,
     /// Shared common point.
-    pub common_point: Option<crypto::publickey::Public>,
+    pub common_point: Option<parity_crypto::publickey::Public>,
     /// If shadow decryption was requested: shadow decryption coefficients, encrypted with requestor public.
     pub decrypt_shadows: Option<Vec<Vec<u8>>>,
 }
@@ -93,9 +93,9 @@ pub struct EncryptedDocumentKeyShadow {
 #[derive(Debug, Clone)]
 pub enum Requester {
     /// Requested with server key id signature.
-    Signature(crypto::publickey::Signature),
+    Signature(parity_crypto::publickey::Signature),
     /// Requested with public key.
-    Public(crypto::publickey::Public),
+    Public(parity_crypto::publickey::Public),
     /// Requested with verified address.
     Address(Address),
 }
@@ -110,7 +110,7 @@ impl Requester {
     pub fn public(&self, server_key_id: &ServerKeyId) -> Result<Public, String> {
         match *self {
             Requester::Signature(ref signature) => {
-                crypto::publickey::recover(signature, server_key_id)
+                parity_crypto::publickey::recover(signature, server_key_id)
                     .map_err(|e| format!("bad signature: {}", e))
             }
             Requester::Public(ref public) => Ok(public.clone()),
@@ -121,20 +121,20 @@ impl Requester {
     pub fn address(
         &self,
         server_key_id: &ServerKeyId,
-    ) -> Result<crypto::publickey::Address, String> {
+    ) -> Result<parity_crypto::publickey::Address, String> {
         self.public(server_key_id)
-            .map(|p| crypto::publickey::public_to_address(&p))
+            .map(|p| parity_crypto::publickey::public_to_address(&p))
     }
 }
 
-impl From<crypto::publickey::Signature> for Requester {
-    fn from(signature: crypto::publickey::Signature) -> Requester {
+impl From<parity_crypto::publickey::Signature> for Requester {
+    fn from(signature: parity_crypto::publickey::Signature) -> Requester {
         Requester::Signature(signature)
     }
 }
 
-impl From<crypto::publickey::Public> for Requester {
-    fn from(public: crypto::publickey::Public) -> Requester {
+impl From<parity_crypto::publickey::Public> for Requester {
+    fn from(public: parity_crypto::publickey::Public) -> Requester {
         Requester::Public(public)
     }
 }
