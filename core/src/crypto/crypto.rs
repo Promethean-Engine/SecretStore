@@ -17,6 +17,10 @@ struct ZeroGenerationArtifacts{
     secret_shares: Vec<Secret>,
 }
 
+pub trait Signable {
+    fn sign(&self, public_key: Public) -> Signature {}
+}
+
 fn generate_server_key() -> (Public,Secret) {
 // fns prepare_polynoms1 and run_key_gen (554 and 569) in math
 
