@@ -1,6 +1,6 @@
 use parity_crypto::publickey::{Public, Secret, Signature, Random, Generator, ec_math_utils, KeyPair, recover, verify_public};
 
-// for reference and testing
+use crate::types::EncryptedDocumentKey;
 
 #[derive(Clone)]
 struct KeyGenerationArtifacts{
@@ -18,12 +18,18 @@ struct ZeroGenerationArtifacts{
 }
 
 pub trait Signable {
-    fn sign(&self, public_key: Public) -> Signature {}
+    fn sign(&self, public_key: Public) -> Signature {
 
-    fn verify(&self, public_key: Public) -> bool {}
+    }
+
+    fn verify(&self, public_key: Public) -> bool {
+
+    }
 }
 
-fn generate_server_key() -> (Public,Secret) {
+pub fn generate_server_key() -> (Public,Secret) {
+
+}
 // fns prepare_polynoms1 and run_key_gen (554 and 569) in math
 
 
@@ -104,22 +110,21 @@ KeyGenerationArtifacts {
     joint_public: joint_public,
 }
 */
+
+pub fn generate_server_key_shares() -> Vec<Secret> {
+
 }
 
-fn generate_server_key_shares() -> Vec<Secret> {
-
-}
-
-fn generate_document_key() -> (Public,Secret) {
+pub fn generate_document_key() -> (Public,Secret) {
 
 }
 
 // TODO Return type should be the encrypted document key representation
-fn encrypt_document_key(document_secret_key: Secret, server_secret_key: Secret) {
+pub fn encrypt_document_key(document_secret_key: Secret, server_secret_key: Secret) -> EncryptedSecretKey {
 
 }
 
 // TODO Argument should be the encrypted document key representation
-fn decrypt_document_key() -> Secret {
+pub fn decrypt_document_key(key: EncryptedSecretKey) -> Secret {
 
 }
