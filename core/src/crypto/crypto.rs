@@ -1,6 +1,6 @@
 use parity_crypto::publickey::{Public, Secret, Signature, Random, Generator, ec_math_utils, KeyPair, recover, verify_public};
 
-use crate::types::EncryptedDocumentKey;
+use crate::types::{EncryptedDocumentKey, Error};
 
 #[derive(Clone)]
 struct KeyGenerationArtifacts{
