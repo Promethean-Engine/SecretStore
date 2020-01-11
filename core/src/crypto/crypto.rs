@@ -19,6 +19,8 @@ struct ZeroGenerationArtifacts{
 
 pub trait Signable {
     fn sign(&self, public_key: Public) -> Signature {}
+
+    fn verify(&self, public_key: Public) -> bool {}
 }
 
 fn generate_server_key() -> (Public,Secret) {
@@ -119,14 +121,5 @@ fn encrypt_document_key(document_secret_key: Secret, server_secret_key: Secret) 
 
 // TODO Argument should be the encrypted document key representation
 fn decrypt_document_key() -> Secret {
-
-}
-
-// TODO Need to implement a "Signable" trait for arguments to this function to implement
-fn generate_signature() -> Signature {
-
-}
-
-fn verify_signature(signature: Signature) -> bool {
 
 }
