@@ -1,5 +1,3 @@
-// extern crate parity_crypto as crypto;
-
 use parity_crypto::publickey::{Public, Secret, Signature, Random, Generator, ec_math_utils, KeyPair, recover, verify_public};
 
 // for reference and testing
@@ -19,7 +17,7 @@ struct ZeroGenerationArtifacts{
     secret_shares: Vec<Secret>,
 }
 
-fn generate_server_key() { 
+fn generate_server_key() -> (Public,Secret) {
 // fns prepare_polynoms1 and run_key_gen (554 and 569) in math
 
 
@@ -99,26 +97,32 @@ KeyGenerationArtifacts {
     secret_shares: secret_shares,
     joint_public: joint_public,
 }
+*/
+}
 
-
-        */
-
-
-
+fn generate_server_key_shares() -> Vec<Secret> {
 
 }
 
-
-fn generate_server_key_shares((t,n):(isize,isize)) {
+fn generate_document_key() -> (Public,Secret) {
 
 }
 
-fn generate_document_key() {}
+// TODO Return type should be the encrypted document key representation
+fn encrypt_document_key(document_secret_key: Secret, server_secret_key: Secret) {
 
-fn encrypt_document_key() {}
+}
 
-fn decrypt_document_key() {}
+// TODO Argument should be the encrypted document key representation
+fn decrypt_document_key() -> Secret {
 
-fn generate_signature() {}
+}
 
-fn verify_signature() {}
+// TODO Need to implement a "Signable" trait for arguments to this function to implement
+fn generate_signature() -> Signature {
+
+}
+
+fn verify_signature(signature: Signature) -> bool {
+
+}
