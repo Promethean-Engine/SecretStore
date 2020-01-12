@@ -231,9 +231,17 @@ pub fn encrypt_document_key(document_secret_key: Public, joint_public: Public) -
     key_adapter(super::math::encrypt_secret(&joint_public, &document_secret_key).unwrap())
 }
 
-pub fn decrypt_document_key(key: EncryptedDocumentKey) -> Secret {
-    let secret:Secret;
-    secret
+pub fn decrypt_document_key(
+    threshold: usize,
+    access_key: &Secret,
+    encrypted_point: &Public,
+    joint_shadow_point: &Public) -> Public {
+        super::math::decrypt_with_joint_shadow(
+            threshold,
+            &access_key,
+            &encrypted_point,
+            &joint_shadow_point
+        ).unwrap()
 }
 
 fn key_adapter(key: super::math::EncryptedSecret) -> EncryptedDocumentKey {
