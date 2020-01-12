@@ -50,14 +50,15 @@ pub fn generate_document_key() -> (Public,Secret) {
     doc_key
 }
 
-// TODO Return type should be the encrypted document key representation
-pub fn encrypt_document_key(document_secret_key: Secret, server_secret_key: Secret) -> EncryptedDocumentKey { //EncryptedSecretKey
-    let enc_secretkey: EncryptedDocumentKey;
-    enc_secretkey
+pub fn encrypt_document_key(document_secret_key: Secret, server_secret_key: Secret) -> EncryptedDocumentKey {
+    key_adapter(super::math::encrypt_secret(&server_secret_key, &document_secret_key).unwrap())
 }
 
-// TODO Argument should be the encrypted document key representation
-pub fn decrypt_document_key(key: EncryptedDocumentKey) -> Secret {//EncryptedSecretKey
+pub fn decrypt_document_key(key: EncryptedDocumentKey) -> Secret {
     let secret:Secret;
     secret
+}
+
+fn key_adapter(key: super::math::EncryptedSecret) -> EncryptedDocumentKey {
+    
 }
