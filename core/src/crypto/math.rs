@@ -707,6 +707,23 @@ pub fn compute_ecdsa_inversed_secret_coeff_from_shares(
     Ok(u_inv)
 }
 
+pub fn prepare_polynoms1(t: usize, n: usize, secret_required: Option<Secret>) -> Vec<Vec<Secret>> {
+    let mut polynoms1: Vec<_> = (0..n)
+        .map(|_| generate_random_polynom(t).unwrap())
+        .collect();
+    // if we need specific secret to be shared, update polynoms so that sum of their free terms = required secret
+    if let Some(mut secret_required) = secret_required {
+        for polynom1 in polynoms1.iter_mut().take(n - 1) {
+            let secret_coeff1 = generate_random_scalar().unwrap();
+            secret_required.sub(&secret_coeff1).unwrap();
+            polynom1[0] = secret_coeff1;
+        }
+
+        polynoms1[n - 1][0] = secret_required;
+    }
+    polynoms1
+}
+
 #[cfg(test)]
 pub mod tests {
     use super::*;
@@ -726,23 +743,6 @@ pub mod tests {
     struct ZeroGenerationArtifacts {
         polynoms1: Vec<Vec<Secret>>,
         secret_shares: Vec<Secret>,
-    }
-
-    fn prepare_polynoms1(t: usize, n: usize, secret_required: Option<Secret>) -> Vec<Vec<Secret>> {
-        let mut polynoms1: Vec<_> = (0..n)
-            .map(|_| generate_random_polynom(t).unwrap())
-            .collect();
-        // if we need specific secret to be shared, update polynoms so that sum of their free terms = required secret
-        if let Some(mut secret_required) = secret_required {
-            for polynom1 in polynoms1.iter_mut().take(n - 1) {
-                let secret_coeff1 = generate_random_scalar().unwrap();
-                secret_required.sub(&secret_coeff1).unwrap();
-                polynom1[0] = secret_coeff1;
-            }
-
-            polynoms1[n - 1][0] = secret_required;
-        }
-        polynoms1
     }
 
     fn run_key_generation(
