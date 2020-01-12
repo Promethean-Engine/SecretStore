@@ -1,6 +1,7 @@
 use parity_crypto::publickey::{Public, Secret, Signature, Random, Generator, ec_math_utils, KeyPair, recover, verify_public};
 
 use crate::types::{EncryptedDocumentKey, Error};
+use bytes::Bytes;
 
 #[derive(Clone)]
 struct KeyGenerationArtifacts{
@@ -60,5 +61,23 @@ pub fn decrypt_document_key(key: EncryptedDocumentKey) -> Secret {
 }
 
 fn key_adapter(key: super::math::EncryptedSecret) -> EncryptedDocumentKey {
-    
+    key.encrypted_point.as_bytes().to_vec()
+}
+
+#[cfg(test)]
+pub mod tests {
+    #[test]
+    fn test_key_generation() {}
+
+    #[test]
+    fn test_encryption() {}
+
+    #[test]
+    fn test_decryption() {}
+
+    #[test]
+    fn test_sign() {}
+
+    #[test]
+    fn test_verify() {}
 }
