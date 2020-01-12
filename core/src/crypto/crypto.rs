@@ -30,12 +30,12 @@ pub trait Signable {
 
 
 // run_key_gen, prepare_polynoms1
-pub fn generate_random_scalar() -> Result<Secret, Error> {
+fn generate_random_scalar() -> Result<Secret, Error> {
     Ok(Random.generate()?.secret().clone())
 }
 
 /// Generate random polynom of threshold degree
-pub fn generate_random_polynom(threshold: usize) -> Result<Vec<Secret>, Error> {
+fn generate_random_polynom(threshold: usize) -> Result<Vec<Secret>, Error> {
     (0..threshold + 1)
         .map(|_| generate_random_scalar())
         .collect()
@@ -61,7 +61,7 @@ fn prepare_polynoms1(t: usize, n: usize, secret_required: Option<Secret>) -> Vec
 }
 
 /// Compute value of polynom, using `node_number` as argument
-pub fn compute_polynom(polynom: &[Secret], node_number: &Secret) -> Result<Secret, Error> {
+fn compute_polynom(polynom: &[Secret], node_number: &Secret) -> Result<Secret, Error> {
     debug_assert!(!polynom.is_empty());
 
     let mut result = polynom[0].clone();
@@ -81,7 +81,7 @@ pub fn compute_polynom(polynom: &[Secret], node_number: &Secret) -> Result<Secre
 }
 
 /// Generate public keys for other participants.
-pub fn public_values_generation(
+fn public_values_generation(
     threshold: usize,
     derived_point: &Public,
     polynom1: &[Secret],
@@ -112,7 +112,7 @@ pub fn public_values_generation(
 }
 
 /// Check keys passed by other participants.
-pub fn keys_verification(
+fn keys_verification(
     threshold: usize,
     derived_point: &Public,
     number_id: &Secret,
@@ -155,14 +155,14 @@ pub fn keys_verification(
 	// joint public key as result of dist key gen: compute_joint_public(public_shares.iter()).unwrap()
 	
 /// Compute public key share.
-pub fn compute_public_share(self_secret_value: &Secret) -> Result<Public, Error> {
+fn compute_public_share(self_secret_value: &Secret) -> Result<Public, Error> {
     let mut public_share = ec_math_utils::generation_point();
     ec_math_utils::public_mul_secret(&mut public_share, self_secret_value)?;
     Ok(public_share)
 }
 
 /// Compute secret sum.
-pub fn compute_secret_sum<'a, I>(mut secrets: I) -> Result<Secret, Error>
+fn compute_secret_sum<'a, I>(mut secrets: I) -> Result<Secret, Error>
 where
     I: Iterator<Item = &'a Secret>,
 {
@@ -178,7 +178,7 @@ where
 
 
 /// Compute public sum.
-pub fn compute_public_sum<'a, I>(mut publics: I) -> Result<Public, Error>
+fn compute_public_sum<'a, I>(mut publics: I) -> Result<Public, Error>
 where
     I: Iterator<Item = &'a Public>,
 {
@@ -193,7 +193,7 @@ where
 }
 
 /// Compute secret share.
-pub fn compute_secret_share<'a, I>(secret_values: I) -> Result<Secret, Error>
+fn compute_secret_share<'a, I>(secret_values: I) -> Result<Secret, Error>
 where
     I: Iterator<Item = &'a Secret>,
 {
@@ -201,7 +201,7 @@ where
 }
 
 /// Compute joint public key.
-pub fn compute_joint_public<'a, I>(public_shares: I) -> Result<Public, Error>
+fn compute_joint_public<'a, I>(public_shares: I) -> Result<Public, Error>
 where
     I: Iterator<Item = &'a Public>,
 {
