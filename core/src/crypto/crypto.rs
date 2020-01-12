@@ -147,7 +147,7 @@ pub fn verify() {}
 #[cfg(test)]
 pub mod tests {
     use std::any::type_name;
-    use ethereum_types::{H256};     
+    use primitive_types::{H256};     
     use super::*;
 
     #[test]
@@ -155,8 +155,8 @@ pub mod tests {
         let t:usize = 4;
         let n:usize = 5; 
 
-        let secret_hash = ethereum_types::H256::random();
-        let secret1 = Secret{inner:secret_hash};
+        let secret_hash = primitive_types::H256::random();
+        let secret1 = Secret::from(secret_hash);
         let secret1_opt: Option<Secret> = Some(secret1);
 
 
@@ -164,9 +164,9 @@ pub mod tests {
         let mut temp_hash; 
         let mut temp_secret;
         // let mut temp_opt: Option<Secret>; 
-        for n in 0..3{ // create Vec of Secrets 
-            temp_hash = ethereum_types::H256::random();
-            temp_secret = Secret{inner:temp_hash};
+        for n in 0..5{ // create Vec of Secrets 
+            temp_hash = primitive_types::H256::random();
+            temp_secret = Secret::from(temp_hash);
             // temp_opt = Some(temp_secret); 
             secrets_vector_for_ids.push(temp_secret); 
         }
