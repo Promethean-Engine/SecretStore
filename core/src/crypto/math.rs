@@ -15,7 +15,7 @@
 // along with Parity Ethereum.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::types::Error;
-use crypto::publickey::{ec_math_utils, Generator, Public, Random, Secret, Signature};
+use parity_crypto::publickey::{ec_math_utils, Generator, Public, Random, Secret, Signature};
 use hash::keccak;
 use primitive_types::{H256, U256};
 
@@ -710,7 +710,7 @@ pub fn compute_ecdsa_inversed_secret_coeff_from_shares(
 #[cfg(test)]
 pub mod tests {
     use super::*;
-    use crypto::publickey::{recover, verify_public, KeyPair};
+    use parity_crypto::publickey::{recover, verify_public, KeyPair};
     use std::iter::once;
 
     #[derive(Clone)]

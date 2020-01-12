@@ -1,4 +1,4 @@
-mod crypto;
-// mod math;
+pub mod crypto;
+mod math;
 
 pub use self::crypto::*;
