@@ -50,8 +50,8 @@ pub fn generate_document_key() -> (Public,Secret) {
     doc_key
 }
 
-pub fn encrypt_document_key(document_secret_key: Secret, server_secret_key: Secret) -> EncryptedDocumentKey {
-    key_adapter(super::math::encrypt_secret(&server_secret_key, &document_secret_key).unwrap())
+pub fn encrypt_document_key(document_secret_key: Public, joint_public: Public) -> EncryptedDocumentKey {
+    key_adapter(super::math::encrypt_secret(&joint_public, &document_secret_key).unwrap())
 }
 
 pub fn decrypt_document_key(key: EncryptedDocumentKey) -> Secret {
