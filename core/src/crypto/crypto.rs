@@ -5,21 +5,6 @@ use bytes::Bytes;
 
 use super::math::*;
 
-#[derive(Clone)]
-struct KeyGenerationArtifacts{
-    id_numbers: Vec<Secret>,
-    polynoms1: Vec<Vec<Secret>>,
-    secrets1: Vec<Vec<Secret>>,
-    public_shares: Vec<Public>,
-    secret_shares: Vec<Secret>,
-    joint_public: Public,
-}
-
-struct ZeroGenerationArtifacts{
-    polynoms1: Vec<Vec<Secret>>,
-    secret_shares: Vec<Secret>,
-}
-
 pub trait Signable {
     fn sign(&self, public_key: Public) -> Signature {
 
