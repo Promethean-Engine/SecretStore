@@ -5,16 +5,6 @@ use bytes::Bytes;
 
 use super::math::*;
 
-pub trait Signable {
-    fn sign(&self, public_key: Public) -> Signature {
-
-    }
-
-    fn verify(&self, public_key: Public) -> bool {
-
-    }
-}
-
 pub fn generate_server_key(
     t:usize, n:usize,
     id_numbers: Option<Vec<Secret>>,
@@ -68,12 +58,7 @@ pub fn generate_server_key(
     (public_shares,secret_shares)
 }
 
-pub fn generate_server_key_shares() -> Vec<Secret> {
-
-}
-
 pub fn generate_document_key() -> (Public,Secret) {
-
 }
 
 pub fn encrypt_document_key(document_secret_key: Public, joint_public: Public) -> EncryptedDocumentKey {
@@ -97,6 +82,10 @@ fn key_adapter(key: super::math::EncryptedSecret) -> EncryptedDocumentKey {
     key.encrypted_point.as_bytes().to_vec()
 }
 
+pub fn sign() {}
+
+pub fn verify() {}
+
 #[cfg(test)]
 pub mod tests {
     #[test]
@@ -111,8 +100,8 @@ pub mod tests {
     fn test_decryption() {}
 
     #[test]
-    fn test_signable_sign() {}
+    fn test_sign() {}
 
     #[test]
-    fn test__signable_verify() {}
+    fn test_verify() {}
 }
