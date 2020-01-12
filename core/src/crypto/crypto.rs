@@ -250,14 +250,16 @@ pub mod tests {
     fn test_key_generation() {}
 
     #[test]
-    fn test_encryption() {}
+    fn test_encryption() {
+
+    }
 
     #[test]
     fn test_decryption() {}
 
     #[test]
-    fn test_sign() {}
+    fn test_signable_sign() {}
 
     #[test]
-    fn test_verify() {}
+    fn test__signable_verify() {}
 }
