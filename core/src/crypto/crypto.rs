@@ -111,50 +111,6 @@ fn public_values_generation(
     Ok(publics)
 }
 
-/// Check keys passed by other participants.
-fn keys_verification(
-    threshold: usize,
-    derived_point: &Public,
-    number_id: &Secret,
-    secret1: &Secret,
-    secret2: &Secret,
-    publics: &[Public],
-) -> Result<bool, Error> {
-    // calculate left part
-    let mut multiplication1 = ec_math_utils::generation_point();
-    ec_math_utils::public_mul_secret(&mut multiplication1, secret1)?;
-
-    let mut multiplication2 = derived_point.clone();
-    ec_math_utils::public_mul_secret(&mut multiplication2, secret2)?;
-
-    ec_math_utils::public_add(&mut multiplication1, &multiplication2)?;
-    let left = multiplication1;
-
-    // calculate right part
-    let mut right = publics[0].clone();
-    for i in 1..threshold + 1 {
-        let mut secret_pow = number_id.clone();
-        secret_pow.pow(i)?;
-
-        let mut public_k = publics[i].clone();
-        ec_math_utils::public_mul_secret(&mut public_k, &secret_pow)?;
-
-        ec_math_utils::public_add(&mut right, &public_k)?;
-    }
-
-    Ok(left == right)
-}
-
-    // data gathered during initialization: derived_point (generate_random_scalar()) and id_numbers:Vec<_>
-    // data generated during key dist: polynoms1 (prepare_polynoms1()) and secrets1:Vec<_> (compute_polynom())
-    // verification: polynoms2, secrets2, publics:Vec<_>(public_values_generation())
-    // verification: keys_verification()
-    
-    // data gathered during key gen: public_shares:Vec<_> (compute_public_share) and secret_shares:Vec<_>(compute_secret_share())
-
-	// joint public key as result of dist key gen: compute_joint_public(public_shares.iter()).unwrap()
-	
-/// Compute public key share.
 fn compute_public_share(self_secret_value: &Secret) -> Result<Public, Error> {
     let mut public_share = ec_math_utils::generation_point();
     ec_math_utils::public_mul_secret(&mut public_share, self_secret_value)?;
@@ -210,17 +166,57 @@ where
 
 
 
-pub fn generate_server_key() -> (Vec<Public>, Vec<Secret>) { //Vec<_> means "compiler please infer the type of this Vector"
-    // data gathered during initialization: derived_point (generate_random_scalar()) and id_numbers:Vec<_>
-    // data generated during key dist: polynoms1 (prepare_polynoms1()) and secrets1:Vec<_> (compute_polynom())
-        // prepare_polynoms1() uses generate_random_polynom
-    // verification: polynoms2, secrets2, publics:Vec<_>(public_values_generation())
-    // verification: keys_verification()
+pub fn generate_server_key(
+    t:usize, n:usize,
+    id_numbers: Option<Vec<Secret>>,
+    secret_required: Option<Secret>)-> (Vec<Public>, Vec<Secret>) 
+{ 
+    // dummy data generated during initialization
+    let derived_point = Random.generate().unwrap().public().clone();
+	let id_numbers: Vec<_> = match id_numbers {
+		Some(id_numbers) => id_numbers,
+		None => (0..n).map(|_| generate_random_scalar().unwrap()).collect(),
+    };
     
-    // data gathered during key gen: public_shares:Vec<_> (compute_public_share) and secret_shares:Vec<_>(compute_secret_shares())
-        // compute_secret_share uses compute_secret_sum
-        // copute secret share uses compute public sum 
-    // joint public key as result of dist key gen: compute_joint_public(public_shares.iter()).unwrap()
+    // data from distribution
+    let polynoms1 = prepare_polynoms1(t,n,secret_required);
+    let secrets1: Vec<_> = (0..n)
+    .map(|i| {
+        (0..n)
+            .map(|j| compute_polynom(&polynoms1[i], &id_numbers[j]).unwrap())
+            .collect::<Vec<_>>()
+    }).collect();
+
+    //data for verification (dummy data?)
+    let polynoms2: Vec<_> = (0..n)
+		.map(|_| generate_random_polynom(t).unwrap())
+		.collect();
+	let secrets2: Vec<_> = (0..n)
+		.map(|i| {
+			(0..n)
+				.map(|j| compute_polynom(&polynoms2[i], &id_numbers[j]).unwrap())
+				.collect::<Vec<_>>()
+		})
+		.collect();
+	let publics: Vec<_> = (0..n)
+		.map(|i| {
+			public_values_generation(t, &derived_point, &polynoms1[i], &polynoms2[i]).unwrap()
+		})
+        .collect();
+
+    // data from key generation 
+	let public_shares: Vec<_> = (0..n)
+		.map(|i| compute_public_share(&polynoms1[i][0]).unwrap())
+		.collect();
+	let secret_shares: Vec<_> = (0..n)
+		.map(|i| compute_secret_share(secrets1.iter().map(|s| &s[i])).unwrap())
+		.collect();
+
+	// joint public key, as a result of DKG
+	let joint_public = compute_joint_public(public_shares.iter()).unwrap();
+
+    // generate (Vec<Public>,Vec<Secret>)
+    (public_shares,secret_shares)
 }
 
 pub fn generate_server_key_shares() -> Vec<Secret> {
