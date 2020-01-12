@@ -102,11 +102,20 @@ pub fn generate_document_key(
         .map(|i| compute_secret_share(secrets1.iter().map(|s| &s[i])).unwrap())
         .collect();
 
+        println!("{}", type_of(&public_shares));
+    println!("{}", type_of(&secret_shares));
+
+
+
     // joint public key, as a result of DKG
     let joint_public = compute_joint_public(public_shares.iter()).unwrap();
 
     // generate (Vec<Public>,Vec<Secret>)
     (public_shares,secret_shares)
+}
+use std::any::type_name;    
+fn type_of<T>(_: T)-> &'static str{
+    type_name::<T>()
 }
 
 
@@ -137,8 +146,46 @@ pub fn verify() {}
 
 #[cfg(test)]
 pub mod tests {
+    use std::any::type_name;
+    use ethereum_types::{H256};     
+    use super::*;
+
     #[test]
-    fn test_key_generation() {}
+    fn test_key_generation() {
+        let t:usize = 4;
+        let n:usize = 5; 
+
+        let secret_hash = ethereum_types::H256::random();
+        let secret1 = Secret{inner:secret_hash};
+        let secret1_opt: Option<Secret> = Some(secret1);
+
+
+        let mut secrets_vector_for_ids = vec![]; // <Option<Secret>>;  
+        let mut temp_hash; 
+        let mut temp_secret;
+        // let mut temp_opt: Option<Secret>; 
+        for n in 0..3{ // create Vec of Secrets 
+            temp_hash = ethereum_types::H256::random();
+            temp_secret = Secret{inner:temp_hash};
+            // temp_opt = Some(temp_secret); 
+            secrets_vector_for_ids.push(temp_secret); 
+        }
+
+        let keys = generate_document_key(t ,n , Some(secrets_vector_for_ids), secret1_opt); 
+        // fn use these parameters: (usize,usize, Option<Vec<Secret>>, Option<Secret>)
+
+    }
+
+    fn to_array(bytes: &[u8]) -> [u8; 32]{
+        let mut array = [0;32];
+        let bytes = &bytes[..array.len()];
+        array.copy_from_slice(bytes);
+        array
+    }
+
+    fn type_of<T>(_: T)-> &'static str{
+        type_name::<T>()
+    }
 
     #[test]
     fn test_encryption() {
