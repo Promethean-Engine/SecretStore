@@ -6,7 +6,7 @@ pub type NodeId = parity_crypto::publickey::Public;
 /// Server key id. When key is used to encrypt document, it could be document contents hash.
 pub type ServerKeyId = primitive_types::H256;
 /// Encrypted document key type.
-pub type EncryptedDocumentKey = Vec<parity_crypto::publickey::Secret>;
+pub type EncryptedDocumentKey = bytes::Bytes;
 /// Unecrypted document key type.
 pub type DocumentKey = bytes::Bytes;
 /// Message hash.
