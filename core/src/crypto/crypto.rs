@@ -142,9 +142,53 @@ fn key_adapter(key: super::math::EncryptedSecret) -> EncryptedDocumentKey {
     key.encrypted_point.as_bytes().to_vec()
 }
 
-pub fn sign() {}
+pub fn sign() {
+// https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm#Signature_generation_algorithm    
+// 1 hashed message to_scalar
 
-pub fn verify() {}
+// 2 
+// gen secret shares
+// gen nonce artifacts which will be used for public vars  
+
+// 3 compute public vars  
+//  nonce_public_shares which are joint into nonce_public
+//  signature_r from (r,s) or (r, -s mod n) 
+
+// 4 compute shares of inverted nonce so both nonce and inv(nonce) are unknown
+
+// 5 multiply secret_shares * inv_nonce_shares
+
+// 6 compute shares for s portion of signature such that 
+//   nonce_inv * (hash + secret * sig_r)  i.e.: step 6 of signature 
+//   s = (inv(k))(z+r*dA)mod n ; if = O get new k 
+
+// 7 compute sig_s from received shares 
+}
+
+pub fn verify() {
+// https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm#Signature_verification_algorithm
+
+//1/ serialize ecdsa sig
+// let signature_actual = serialize_ecdsa_signature(&nonce_public, signature_r, signature_s);
+
+//2/ joint secret 
+// let joint_secret = compute_joint_secret(artifacts.polynoms1.iter().map(|p| &p[0])).unwrap();
+
+//3/ joint_secret_pair
+// let joint_secret_pair = KeyPair::from_secret(joint_secret).unwrap();
+
+//4
+/* 
+    assert_eq!(
+        recover(&signature_actual, &message_hash).unwrap(),
+        *joint_secret_pair.public()
+        );
+    assert!(
+        verify_public(joint_secret_pair.public(), &signature_actual, &message_hash)
+            .unwrap()
+    );
+*/
+}
 
 #[cfg(test)]
 pub mod tests {
