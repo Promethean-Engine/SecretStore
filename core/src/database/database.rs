@@ -113,3 +113,41 @@ impl PermissionDatabase {
         });
     }
 }
+
+#[cfg(test)]
+pub mod test {
+    #[test]
+    fn test_add_document_key_pair() {
+
+    }
+
+    #[test]
+    fn test_set_existing_address_allowed() {
+
+    }
+
+    #[test]
+    fn test_set_non_existing_address_allowed() {
+
+    }
+
+    #[test]
+    fn test_set_existing_address_disallowed() {
+
+    }
+
+    #[test]
+    fn test_set_non_existing_address_disallowed() {
+
+    }
+
+    #[test]
+    fn test_get_if_address_allowed() {
+
+    }
+
+    #[test]
+    fn test_get_encrypted_document_key() {
+
+    }
+}
