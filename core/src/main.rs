@@ -3,8 +3,8 @@ extern crate parity_crypto;
 
 use codec::{Decode, Encode};
 
-mod database;
 mod crypto;
+mod database;
 mod types;
 
 fn main() {}

@@ -15,8 +15,8 @@
 // along with Parity Ethereum.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::types::Error;
-use parity_crypto::publickey::{ec_math_utils, Generator, Public, Random, Secret, Signature};
 use hash::keccak;
+use parity_crypto::publickey::{ec_math_utils, Generator, Public, Random, Secret, Signature};
 use primitive_types::{H256, U256};
 
 /// Encryption result.

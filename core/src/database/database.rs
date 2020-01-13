@@ -18,7 +18,7 @@ struct PermissionEntry {
 struct Document {
     pub id: u64,
     pub secret_key: EncryptedDocumentKey,
-    pub public_key: Public
+    pub public_key: Public,
 }
 
 impl PermissionDatabase {
@@ -100,11 +100,16 @@ impl PermissionDatabase {
         }
     }
 
-    pub fn add_document_key_pair(&mut self, document_id: u64, document_key: EncryptedDocumentKey, public_key: Public) {
+    pub fn add_document_key_pair(
+        &mut self,
+        document_id: u64,
+        document_key: EncryptedDocumentKey,
+        public_key: Public,
+    ) {
         self.documents.push(Document {
             id: document_id,
             secret_key: document_key,
-            public_key: public_key
+            public_key: public_key,
         });
     }
 }
