@@ -196,7 +196,6 @@ pub mod test {
             permission_entries: Vec::new(),
             documents: Vec::new(),
         };
-        let key: Public = Random.generate().unwrap().public().clone();
         database.add_document_key_pair(
             0,
             bytes::Bytes::new(),
