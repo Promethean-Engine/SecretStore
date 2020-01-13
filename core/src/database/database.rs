@@ -1,22 +1,24 @@
 use crate::types::EncryptedDocumentKey;
 use codec::{Decode, Encode};
+use parity_crypto::publickey::Public;
 
-#[derive(Default, Debug, PartialEq, Encode, Decode)]
+#[derive(Default, Debug, PartialEq)]
 pub struct PermissionDatabase {
     permission_entries: Vec<PermissionEntry>,
     documents: Vec<Document>,
 }
 
-#[derive(Default, Debug, PartialEq, Encode, Decode, Clone)]
+#[derive(Default, Debug, PartialEq, Clone)]
 struct PermissionEntry {
     pub allowed_account: u64,
     pub document_id: Vec<u64>,
 }
 
-#[derive(Default, Debug, PartialEq, Encode, Decode, Clone)]
+#[derive(Default, Debug, PartialEq, Clone)]
 struct Document {
     pub id: u64,
-    pub key: EncryptedDocumentKey,
+    pub secret_key: EncryptedDocumentKey,
+    pub public_key: Public
 }
 
 impl PermissionDatabase {
@@ -55,7 +57,7 @@ impl PermissionDatabase {
                     .documents
                     .iter()
                     .find(|item| item.id == document_id)
-                    .map(|item| item.key.as_ref()),
+                    .map(|item| item.secret_key.as_ref()),
             };
         retval
     }
@@ -98,10 +100,11 @@ impl PermissionDatabase {
         }
     }
 
-    pub fn add_document_key_pair(&mut self, document_id: u64, document_key: EncryptedDocumentKey) {
+    pub fn add_document_key_pair(&mut self, document_id: u64, document_key: EncryptedDocumentKey, public_key: Public) {
         self.documents.push(Document {
             id: document_id,
-            key: document_key,
+            secret_key: document_key,
+            public_key: public_key
         });
     }
 }
