@@ -7,7 +7,7 @@ use super::math::*;
 pub fn generate_server_key(
     t:usize, n:usize,
     id_numbers: Option<Vec<Secret>>,
-    secret_required: Option<Secret>)-> (Vec<Public>, Vec<Secret>) 
+    secret_required: Option<Secret>)-> (Public, Vec<Secret>) 
 { 
     // dummy data generated during initialization
     let derived_point = Random.generate().unwrap().public().clone();
@@ -54,7 +54,7 @@ pub fn generate_server_key(
     let joint_public = compute_joint_public(public_shares.iter()).unwrap();
 
     // generate (Vec<Public>,Vec<Secret>)
-    (public_shares,secret_shares)
+    (joint_public,secret_shares)
 }
 
 pub fn generate_document_key(
@@ -132,8 +132,10 @@ pub fn decrypt_document_key(
 }
 
 fn key_adapter(key: super::math::EncryptedSecret) -> EncryptedDocumentKey {
-    key.encrypted_point.as_bytes().to_vec()
+    // key.encrypted_point.as_bytes().to_vec()
+    key.encrypted_point
 }
+
 
 pub fn sign() {}
 
