@@ -60,7 +60,7 @@ pub fn generate_server_key(
 pub fn generate_document_key(
     t:usize, n:usize,
     id_numbers: Option<Vec<Secret>>,
-    secret_required: Option<Secret>) -> (Vec<Public>,Vec<Secret>) {
+    secret_required: Option<Secret>) -> (Public,Vec<Secret>) {
     // dummy data generated during initialization
     let derived_point = Random.generate().unwrap().public().clone();
     let id_numbers: Vec<_> = match id_numbers {
@@ -102,16 +102,11 @@ pub fn generate_document_key(
         .map(|i| compute_secret_share(secrets1.iter().map(|s| &s[i])).unwrap())
         .collect();
 
-        println!("{}", type_of(&public_shares));
-    println!("{}", type_of(&secret_shares));
-
-
-
     // joint public key, as a result of DKG
     let joint_public = compute_joint_public(public_shares.iter()).unwrap();
 
     // generate (Vec<Public>,Vec<Secret>)
-    (public_shares,secret_shares)
+    (joint_public,secret_shares)
 }
 use std::any::type_name;    
 fn type_of<T>(_: T)-> &'static str{
