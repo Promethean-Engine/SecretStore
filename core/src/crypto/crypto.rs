@@ -132,8 +132,7 @@ pub fn decrypt_document_key(
 }
 
 fn key_adapter(key: super::math::EncryptedSecret) -> EncryptedDocumentKey {
-    // key.encrypted_point.as_bytes().to_vec()
-    key.encrypted_point
+    key.encrypted_point.as_bytes().to_vec()
 }
 
 
