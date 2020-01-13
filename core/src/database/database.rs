@@ -116,38 +116,93 @@ impl PermissionDatabase {
 
 #[cfg(test)]
 pub mod test {
+    use super::*;
+    use parity_crypto::publickey::{Generator, Random};
+
     #[test]
     fn test_add_document_key_pair() {
-
+        let mut database = PermissionDatabase {
+            permission_entries: Vec::new(),
+            documents: Vec::new(),
+        };
+        database.add_document_key_pair(
+            0,
+            bytes::Bytes::new(),
+            Random.generate().unwrap().public().clone(),
+        );
     }
 
     #[test]
-    fn test_set_existing_address_allowed() {
-
-    }
-
-    #[test]
-    fn test_set_non_existing_address_allowed() {
-
+    fn test_set_address_allowed() {
+        let mut database = PermissionDatabase {
+            permission_entries: Vec::new(),
+            documents: Vec::new(),
+        };
+        database.add_document_key_pair(
+            0,
+            bytes::Bytes::new(),
+            Random.generate().unwrap().public().clone(),
+        );
+        database.set_address_allowed(0, 0)
     }
 
     #[test]
     fn test_set_existing_address_disallowed() {
-
+        let mut database = PermissionDatabase {
+            permission_entries: Vec::new(),
+            documents: Vec::new(),
+        };
+        database.add_document_key_pair(
+            0,
+            bytes::Bytes::new(),
+            Random.generate().unwrap().public().clone(),
+        );
+        database.set_address_allowed(0, 0);
+        database.set_address_disallowed(0, 0);
     }
 
     #[test]
     fn test_set_non_existing_address_disallowed() {
-
+        let mut database = PermissionDatabase {
+            permission_entries: Vec::new(),
+            documents: Vec::new(),
+        };
+        database.add_document_key_pair(
+            0,
+            bytes::Bytes::new(),
+            Random.generate().unwrap().public().clone(),
+        );
+        database.set_address_disallowed(0, 0);
     }
 
     #[test]
     fn test_get_if_address_allowed() {
-
+        let mut database = PermissionDatabase {
+            permission_entries: Vec::new(),
+            documents: Vec::new(),
+        };
+        database.add_document_key_pair(
+            0,
+            bytes::Bytes::new(),
+            Random.generate().unwrap().public().clone(),
+        );
+        database.set_address_allowed(0, 0);
+        assert!(database.get_if_address_allowed(0, 0).is_some());
     }
 
     #[test]
     fn test_get_encrypted_document_key() {
-
+        let mut database = PermissionDatabase {
+            permission_entries: Vec::new(),
+            documents: Vec::new(),
+        };
+        let key: Public = Random.generate().unwrap().public().clone();
+        database.add_document_key_pair(
+            0,
+            bytes::Bytes::new(),
+            Random.generate().unwrap().public().clone(),
+        );
+        database.set_address_allowed(0, 0);
+        assert!(database.get_encrypted_document_key(0, 0).is_some());
     }
 }
