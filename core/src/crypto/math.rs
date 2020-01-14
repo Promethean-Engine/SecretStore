@@ -776,9 +776,7 @@ pub fn run_key_generation(
         })
         .collect();
     let publics: Vec<_> = (0..n)
-        .map(|i| {
-            public_values_generation(t, &derived_point, &polynoms1[i], &polynoms2[i]).unwrap()
-        })
+        .map(|i| public_values_generation(t, &derived_point, &polynoms1[i], &polynoms2[i]).unwrap())
         .collect();
 
     // keys verification
@@ -890,11 +888,7 @@ pub fn run_reciprocal_protocol(t: usize, artifacts: &KeyGenerationArtifacts) -> 
     x_inv_shares
 }
 
-fn run_zero_key_generation(
-    t: usize,
-    n: usize,
-    id_numbers: &[Secret],
-) -> ZeroGenerationArtifacts {
+fn run_zero_key_generation(t: usize, n: usize, id_numbers: &[Secret]) -> ZeroGenerationArtifacts {
     // data, generated during keys dissemination
     let polynoms1 = prepare_polynoms1(t, n, Some(zero_scalar()));
     let secrets1: Vec<_> = (0..n)

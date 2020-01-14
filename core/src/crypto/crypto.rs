@@ -142,11 +142,10 @@ fn key_adapter(key: super::math::EncryptedSecret) -> EncryptedDocumentKey {
     key.encrypted_point.as_bytes().to_vec()
 }
 
-
 /* Other variable names
 Curve is the curve
 
-G = elliptic curve base point which generates subgroup of large prime order n 
+G = elliptic curve base point which generates subgroup of large prime order n
 
 n = int order of G; n * G = O, the identity element
 
@@ -158,7 +157,7 @@ m = message to send
 
 e = Hash(m)
 
-z = leftmost (Ln) bits of e where where Ln is bit length of group order 
+z = leftmost (Ln) bits of e where where Ln is bit length of group order
     //type hash
 
 k = cryptographically secure rand int from [1,n-1]
@@ -167,80 +166,94 @@ k = cryptographically secure rand int from [1,n-1]
 
 r = x mod n (cannot be O); must get new k if = O
 
-s = (inv(k))(z+r*dA)mod n ; if = O get new k 
+s = (inv(k))(z+r*dA)mod n ; if = O get new k
     // compute shares for s portion of signature:
     // nonce_inv * (hash + secret * sig_r)
 
 Signature: (r,s) or (r, -s mod n)
 
 u1 = z*inv(s) mod n
-u2 = r*inv(s) mod n 
+u2 = r*inv(s) mod n
 */
-
 
 pub fn sign(
     t: usize,
     n: usize,
-    joint_secret: Secret, 
-    joint_nonce: Secret, 
-    message_hash: primitive_types::H256
+    joint_secret: Secret,
+    joint_nonce: Secret,
+    message_hash: primitive_types::H256,
 ) -> Signature {
-// https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm#Signature_generation_algorithm    
+    // https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm#Signature_generation_algorithm
 
+    // 1 hashed message to_scalar
+    let message_hash_scalar = to_scalar(message_hash.clone()).unwrap();
+    // 2
+    // gen secret shares
+    // gen nonce artifacts which will be used for public vars
 
-// 1 hashed message to_scalar
-let message_hash_scalar = to_scalar(message_hash.clone()).unwrap();
-// 2 
-// gen secret shares
-// gen nonce artifacts which will be used for public vars
+    // 3 compute intermediary vars
+    //  - artifacts and nonce_artifacts (outputs of key_gen)
+    let artifacts = run_key_generation(t, n, None, Some(joint_secret));
+    let nonce_artifacts =
+        run_key_generation(t, n, Some(artifacts.id_numbers.clone()), Some(joint_nonce));
+    // // needs to output polynoms1, which is Vec<Vec<Secret>
 
-// 3 compute intermediary vars
-//  - artifacts and nonce_artifacts (outputs of key_gen)
-let artifacts = run_key_generation(t,n, None, Some(joint_secret));
-let nonce_artifacts = run_key_generation(t,n, Some(artifacts.id_numbers.clone()), Some(joint_nonce));
-    // // needs to output polynoms1, which is Vec<Vec<Secret> 
+    //  - nonce_public_shares which are joint into nonce_public (also output of key_gen)
+    let nonce_public_shares: Vec<_> = (0..n)
+        .map(|i| compute_public_share(&nonce_artifacts.polynoms1[i][0]).unwrap())
+        .collect();
+    // polynoms1 is Vec<Vec<Secrets>>
+    // - nonce_public
+    let nonce_public = compute_joint_public(nonce_public_shares.iter()).unwrap();
+    //  -signature_r from (r,s) or (r, -s mod n)
+    let signature_r = compute_ecdsa_r(&nonce_public).unwrap();
 
-//  - nonce_public_shares which are joint into nonce_public (also output of key_gen)
-let nonce_public_shares: Vec<_> = (0..n)
-    .map(|i| compute_public_share(&nonce_artifacts.polynoms1[i][0]).unwrap())
-    .collect();
-// polynoms1 is Vec<Vec<Secrets>> 
-// - nonce_public
-let nonce_public = compute_joint_public(nonce_public_shares.iter()).unwrap();
-//  -signature_r from (r,s) or (r, -s mod n) 
-let signature_r = compute_ecdsa_r(&nonce_public).unwrap(); 
+    // 4 compute shares of inverted nonce so both nonce and inv(nonce) are unknown
+    let nonce_inv_shares = run_reciprocal_protocol(t, &nonce_artifacts);
+    // 5 multiply secret_shares * inv_nonce_shares
+    let mul_shares = run_multiplication_protocol(t, &artifacts.secret_shares, &nonce_inv_shares);
 
-// 4 compute shares of inverted nonce so both nonce and inv(nonce) are unknown
-let nonce_inv_shares = run_reciprocal_protocol(t, &nonce_artifacts);
-// 5 multiply secret_shares * inv_nonce_shares
-let mul_shares = run_multiplication_protocol(t, &artifacts.secret_shares, &nonce_inv_shares);
+    // 6 compute shares for s portion of signature such that
+    //   nonce_inv * (hash + secret * sig_r)  i.e.: step 6 of signature
+    //   s = (inv(k))(z+r*dA)mod n ; if = O get new k
+    let double_t = 2 * t;
+    let signature_s_shares: Vec<_> = (0..double_t + 1)
+        .map(|i| {
+            compute_ecdsa_s_share(
+                &nonce_inv_shares[i],
+                &mul_shares[i],
+                &signature_r,
+                &message_hash_scalar,
+            )
+            .unwrap()
+        })
+        .collect();
 
-// 6 compute shares for s portion of signature such that 
-//   nonce_inv * (hash + secret * sig_r)  i.e.: step 6 of signature 
-//   s = (inv(k))(z+r*dA)mod n ; if = O get new k 
-let double_t = 2 * t; 
-let signature_s_shares: Vec<_> = (0..double_t + 1)
-    .map(|i|{
-        compute_ecdsa_s_share(
-            &nonce_inv_shares[i],
-            &mul_shares[i],
-            &signature_r,
-            &message_hash_scalar
-        ).unwrap()
-    }).collect(); 
+    // 7 compute sig_s from received shares
+    let signature_s = compute_ecdsa_s(
+        t,
+        &signature_s_shares,
+        &artifacts
+            .id_numbers
+            .iter()
+            .take(double_t + 1)
+            .cloned()
+            .collect::<Vec<_>>(),
+    )
+    .unwrap();
 
-// 7 compute sig_s from received shares 
-let signature_s = compute_ecdsa_s(
-    t, 
-    &signature_s_shares, 
-    &artifacts.id_numbers.iter().take(double_t + 1)
-    .cloned().collect::<Vec<_>>()
-).unwrap();
-
-serialize_ecdsa_signature(&nonce_public, compute_ecdsa_r(&nonce_public).unwrap(), signature_s)
+    serialize_ecdsa_signature(
+        &nonce_public,
+        compute_ecdsa_r(&nonce_public).unwrap(),
+        signature_s,
+    )
 }
 
-pub fn verify(public_key: Public, signature: Signature, message_hash: primitive_types::H256) -> bool {
+pub fn verify(
+    public_key: Public,
+    signature: Signature,
+    message_hash: primitive_types::H256,
+) -> bool {
     verify_public(&public_key, &signature, &message_hash).unwrap()
 }
 
@@ -306,6 +319,10 @@ pub mod tests {
         let joint_nonce: Secret = Random.generate().unwrap().secret().clone();
         let message = H256::random();
         let signature = sign(3, 15, joint_secret, joint_nonce, message);
-        assert!(verify(recover(&signature, &message).unwrap(), signature, message))
+        assert!(verify(
+            recover(&signature, &message).unwrap(),
+            signature,
+            message
+        ))
     }
 }
