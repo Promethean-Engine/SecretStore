@@ -142,42 +142,115 @@ fn key_adapter(key: super::math::EncryptedSecret) -> EncryptedDocumentKey {
     key.encrypted_point.as_bytes().to_vec()
 }
 
-pub fn sign() {
-// https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm#Signature_generation_algorithm    
-// 1 hashed message to_scalar
 
+/* Other variable names
+Curve is the curve
+
+G = elliptic curve base point which generates subgroup of large prime order n 
+
+n = int order of G; n * G = O, the identity element
+
+dA = private key (random num) in [1, n-1]
+
+QA = public key (calc'd by Curve); QA = dA * G
+
+m = message to send
+
+e = Hash(m)
+
+z = leftmost (Ln) bits of e where where Ln is bit length of group order 
+    //type hash
+
+k = cryptographically secure rand int from [1,n-1]
+
+(x,y) = curve point K*G = u1 * G + u2 * QA; cannot be O
+
+r = x mod n (cannot be O); must get new k if = O
+
+s = (inv(k))(z+r*dA)mod n ; if = O get new k 
+    // compute shares for s portion of signature:
+    // nonce_inv * (hash + secret * sig_r)
+
+Signature: (r,s) or (r, -s mod n)
+
+u1 = z*inv(s) mod n
+u2 = r*inv(s) mod n 
+*/
+
+
+pub fn sign(
+    joint_secret: Secret, 
+    joint_nonce: Secret, 
+    message_hash: H256
+) {
+// https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm#Signature_generation_algorithm    
+
+
+// 1 hashed message to_scalar
+let message_hash_scalar = to_scalar(message_hash.clone()).unwrap();
 // 2 
 // gen secret shares
 // gen nonce artifacts which will be used for public vars  
+let artifacts = run_key_generation(t,n, None, Some(joint_secret));
 
-// 3 compute public vars  
-//  nonce_public_shares which are joint into nonce_public
-//  signature_r from (r,s) or (r, -s mod n) 
+// 3 compute intermediary vars
+//  - artifacts and nonce_artifacts (outputs of key_gen)
+let artifacts = run_key_generation(t,n, None, Some(joint_secret));
+let nonce_artifacts = run_key_generation(t,n, Some(artifacts.id_numbers.clone()), Some(joint_nonce));
+    // // needs to output polynoms1, which is Vec<Vec<Secret> 
+
+//  - nonce_public_shares which are joint into nonce_public (also output of key_gen)
+let nonce_public_shares: Vec<_> = (0..n)
+    .map(|i| compute_public_share(&nonce_artifacts.polynoms1[i][0]).unwrap())
+    .collect();
+// polynoms1 is Vec<Vec<Secrets>> 
+// - nonce_public
+let nonce_public = compute_joint_public(nonce_public_shares.iter()).unwrap();
+//  -signature_r from (r,s) or (r, -s mod n) 
+let signature_r = compute_ecdsa_r(&nonce_public).unwrap(); 
 
 // 4 compute shares of inverted nonce so both nonce and inv(nonce) are unknown
-
+let nonce_inv_shares = run_reciprocal_protocol(t, &nonce_artifacts);
 // 5 multiply secret_shares * inv_nonce_shares
+let mul_shares = run_multiplication_protocol(t, &artifacts.secret_shares, &nonce_inv_shares);
 
 // 6 compute shares for s portion of signature such that 
 //   nonce_inv * (hash + secret * sig_r)  i.e.: step 6 of signature 
 //   s = (inv(k))(z+r*dA)mod n ; if = O get new k 
+let double_t = 2 * t; 
+let signature_s_shares: Vec<_> = (0..double_t + 1)
+    .map(|i|{
+        compute_ecdsa_s_share(
+            &nonce_inv_shares[i],
+            &mul_shares[i],
+            &signature_r,
+            &message_hash_scalar
+        ).unwrap()
+    }).collect(); 
 
 // 7 compute sig_s from received shares 
+let signature_s = compute_ecdsa_s(
+    t, 
+    &signature_s_shares, 
+    &artifacts.id_numbers.iter().take(double_t + 1)
+    .cloned().collect::<Vec<_>>()
+).unwrap();
 }
 
+// need to work on parameters of verification based on the work that is done in signature 
 pub fn verify() {
 // https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm#Signature_verification_algorithm
 
 //1/ serialize ecdsa sig
-// let signature_actual = serialize_ecdsa_signature(&nonce_public, signature_r, signature_s);
+let signature_actual = serialize_ecdsa_signature(&nonce_public, signature_r, signature_s);
 
 //2/ joint secret 
-// let joint_secret = compute_joint_secret(artifacts.polynoms1.iter().map(|p| &p[0])).unwrap();
+let joint_secret = compute_joint_secret(artifacts.polynoms1.iter().map(|p| &p[0])).unwrap();
 
 //3/ joint_secret_pair
-// let joint_secret_pair = KeyPair::from_secret(joint_secret).unwrap();
+let joint_secret_pair = KeyPair::from_secret(joint_secret).unwrap();
 
-//4
+// test cases 
 /* 
     assert_eq!(
         recover(&signature_actual, &message_hash).unwrap(),
