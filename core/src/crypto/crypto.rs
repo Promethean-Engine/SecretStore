@@ -179,10 +179,12 @@ u2 = r*inv(s) mod n
 
 
 pub fn sign(
+    t: usize,
+    n: usize,
     joint_secret: Secret, 
     joint_nonce: Secret, 
-    message_hash: H256
-) {
+    message_hash: primitive_types::H256
+) -> Signature {
 // https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm#Signature_generation_algorithm    
 
 
@@ -190,8 +192,7 @@ pub fn sign(
 let message_hash_scalar = to_scalar(message_hash.clone()).unwrap();
 // 2 
 // gen secret shares
-// gen nonce artifacts which will be used for public vars  
-let artifacts = run_key_generation(t,n, None, Some(joint_secret));
+// gen nonce artifacts which will be used for public vars
 
 // 3 compute intermediary vars
 //  - artifacts and nonce_artifacts (outputs of key_gen)
@@ -235,32 +236,12 @@ let signature_s = compute_ecdsa_s(
     &artifacts.id_numbers.iter().take(double_t + 1)
     .cloned().collect::<Vec<_>>()
 ).unwrap();
+
+serialize_ecdsa_signature(&nonce_public, compute_ecdsa_r(&nonce_public).unwrap(), signature_s)
 }
 
-// need to work on parameters of verification based on the work that is done in signature 
-pub fn verify() {
-// https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm#Signature_verification_algorithm
-
-//1/ serialize ecdsa sig
-let signature_actual = serialize_ecdsa_signature(&nonce_public, signature_r, signature_s);
-
-//2/ joint secret 
-let joint_secret = compute_joint_secret(artifacts.polynoms1.iter().map(|p| &p[0])).unwrap();
-
-//3/ joint_secret_pair
-let joint_secret_pair = KeyPair::from_secret(joint_secret).unwrap();
-
-// test cases 
-/* 
-    assert_eq!(
-        recover(&signature_actual, &message_hash).unwrap(),
-        *joint_secret_pair.public()
-        );
-    assert!(
-        verify_public(joint_secret_pair.public(), &signature_actual, &message_hash)
-            .unwrap()
-    );
-*/
+pub fn verify(public_key: Public, signature: Signature, message_hash: primitive_types::H256) -> bool {
+    verify_public(&public_key, &signature, &message_hash).unwrap()
 }
 
 #[cfg(test)]
@@ -312,8 +293,19 @@ pub mod tests {
     fn test_decryption() {}
 
     #[test]
-    fn test_sign() {}
+    fn test_sign() {
+        let joint_secret: Secret = Random.generate().unwrap().secret().clone();
+        let joint_nonce: Secret = Random.generate().unwrap().secret().clone();
+        let message = H256::random();
+        sign(3, 15, joint_secret, joint_nonce, message);
+    }
 
     #[test]
-    fn test_verify() {}
+    fn test_verify() {
+        let joint_secret: Secret = Random.generate().unwrap().secret().clone();
+        let joint_nonce: Secret = Random.generate().unwrap().secret().clone();
+        let message = H256::random();
+        let signature = sign(3, 15, joint_secret, joint_nonce, message);
+        assert!(verify(recover(&signature, &message).unwrap(), signature, message))
+    }
 }

@@ -1,11 +1,18 @@
 use crate::types::EncryptedDocumentKey;
-use codec::{Decode, Encode};
-use parity_crypto::publickey::Public;
+use parity_crypto::publickey::{Public, Secret};
 
 #[derive(Default, Debug, PartialEq)]
 pub struct PermissionDatabase {
     permission_entries: Vec<PermissionEntry>,
     documents: Vec<Document>,
+    server_key_shares: Vec<ServerKey>,
+}
+
+#[derive(Debug, PartialEq)]
+pub struct ServerKey {
+    public_key: Public,
+    secret_key_share: Secret,
+    bound_document_id: u64,
 }
 
 #[derive(Default, Debug, PartialEq, Clone)]
@@ -26,6 +33,7 @@ impl PermissionDatabase {
         PermissionDatabase {
             permission_entries: Vec::new(),
             documents: Vec::new(),
+            server_key_shares: Vec::new(),
         }
     }
 
@@ -112,6 +120,25 @@ impl PermissionDatabase {
             public_key: public_key,
         });
     }
+
+    pub fn add_server_key_by_document(
+        &mut self,
+        document_id: u64,
+        server_public_key: Public,
+        server_private_key_share: Secret,
+    ) {
+        self.server_key_shares.push(ServerKey {
+            public_key: server_public_key,
+            secret_key_share: server_private_key_share,
+            bound_document_id: document_id,
+        });
+    }
+
+    pub fn get_server_key_by_document(&self, document_id: u64) -> Option<&ServerKey> {
+        self.server_key_shares
+            .iter()
+            .find(|x| x.bound_document_id == document_id)
+    }
 }
 
 #[cfg(test)]
@@ -124,6 +151,7 @@ pub mod test {
         let mut database = PermissionDatabase {
             permission_entries: Vec::new(),
             documents: Vec::new(),
+            server_key_shares: Vec::new(),
         };
         database.add_document_key_pair(
             0,
@@ -137,6 +165,7 @@ pub mod test {
         let mut database = PermissionDatabase {
             permission_entries: Vec::new(),
             documents: Vec::new(),
+            server_key_shares: Vec::new(),
         };
         database.add_document_key_pair(
             0,
@@ -151,6 +180,7 @@ pub mod test {
         let mut database = PermissionDatabase {
             permission_entries: Vec::new(),
             documents: Vec::new(),
+            server_key_shares: Vec::new(),
         };
         database.add_document_key_pair(
             0,
@@ -166,6 +196,7 @@ pub mod test {
         let mut database = PermissionDatabase {
             permission_entries: Vec::new(),
             documents: Vec::new(),
+            server_key_shares: Vec::new(),
         };
         database.add_document_key_pair(
             0,
@@ -180,6 +211,7 @@ pub mod test {
         let mut database = PermissionDatabase {
             permission_entries: Vec::new(),
             documents: Vec::new(),
+            server_key_shares: Vec::new(),
         };
         database.add_document_key_pair(
             0,
@@ -195,6 +227,7 @@ pub mod test {
         let mut database = PermissionDatabase {
             permission_entries: Vec::new(),
             documents: Vec::new(),
+            server_key_shares: Vec::new(),
         };
         database.add_document_key_pair(
             0,

@@ -28,6 +28,21 @@ pub struct EncryptedSecret {
     pub encrypted_point: Public,
 }
 
+#[derive(Clone)]
+pub struct KeyGenerationArtifacts {
+    pub id_numbers: Vec<Secret>,
+    pub polynoms1: Vec<Vec<Secret>>,
+    pub secrets1: Vec<Vec<Secret>>,
+    pub public_shares: Vec<Public>,
+    pub secret_shares: Vec<Secret>,
+    pub joint_public: Public,
+}
+
+struct ZeroGenerationArtifacts {
+    polynoms1: Vec<Vec<Secret>>,
+    secret_shares: Vec<Secret>,
+}
+
 /// Create zero scalar.
 pub fn zero_scalar() -> Secret {
     Secret::zero()
@@ -722,6 +737,183 @@ pub fn prepare_polynoms1(t: usize, n: usize, secret_required: Option<Secret>) ->
         polynoms1[n - 1][0] = secret_required;
     }
     polynoms1
+}
+
+pub fn run_key_generation(
+    t: usize,
+    n: usize,
+    id_numbers: Option<Vec<Secret>>,
+    secret_required: Option<Secret>,
+) -> KeyGenerationArtifacts {
+    // === PART1: DKG ===
+
+    // data, gathered during initialization
+    let derived_point = Random.generate().unwrap().public().clone();
+    let id_numbers: Vec<_> = match id_numbers {
+        Some(id_numbers) => id_numbers,
+        None => (0..n).map(|_| generate_random_scalar().unwrap()).collect(),
+    };
+
+    // data, generated during keys dissemination
+    let polynoms1 = prepare_polynoms1(t, n, secret_required);
+    let secrets1: Vec<_> = (0..n)
+        .map(|i| {
+            (0..n)
+                .map(|j| compute_polynom(&polynoms1[i], &id_numbers[j]).unwrap())
+                .collect::<Vec<_>>()
+        })
+        .collect();
+
+    // following data is used only on verification step
+    let polynoms2: Vec<_> = (0..n)
+        .map(|_| generate_random_polynom(t).unwrap())
+        .collect();
+    let secrets2: Vec<_> = (0..n)
+        .map(|i| {
+            (0..n)
+                .map(|j| compute_polynom(&polynoms2[i], &id_numbers[j]).unwrap())
+                .collect::<Vec<_>>()
+        })
+        .collect();
+    let publics: Vec<_> = (0..n)
+        .map(|i| {
+            public_values_generation(t, &derived_point, &polynoms1[i], &polynoms2[i]).unwrap()
+        })
+        .collect();
+
+    // keys verification
+    (0..n).for_each(|i| {
+        (0..n).filter(|&j| i != j).for_each(|j| {
+            assert!(keys_verification(
+                t,
+                &derived_point,
+                &id_numbers[i],
+                &secrets1[j][i],
+                &secrets2[j][i],
+                &publics[j]
+            )
+            .unwrap());
+        })
+    });
+
+    // data, generated during keys generation
+    let public_shares: Vec<_> = (0..n)
+        .map(|i| compute_public_share(&polynoms1[i][0]).unwrap())
+        .collect();
+    let secret_shares: Vec<_> = (0..n)
+        .map(|i| compute_secret_share(secrets1.iter().map(|s| &s[i])).unwrap())
+        .collect();
+
+    // joint public key, as a result of DKG
+    let joint_public = compute_joint_public(public_shares.iter()).unwrap();
+
+    KeyGenerationArtifacts {
+        id_numbers: id_numbers,
+        polynoms1: polynoms1,
+        secrets1: secrets1,
+        public_shares: public_shares,
+        secret_shares: secret_shares,
+        joint_public: joint_public,
+    }
+}
+
+pub fn run_multiplication_protocol(
+    t: usize,
+    secret_shares1: &[Secret],
+    secret_shares2: &[Secret],
+) -> Vec<Secret> {
+    let n = secret_shares1.len();
+    assert!(t * 2 + 1 <= n);
+
+    // shares of secrets multiplication = multiplication of secrets shares
+    let mul_shares: Vec<_> = (0..n)
+        .map(|i| {
+            let share1 = secret_shares1[i].clone();
+            let share2 = secret_shares2[i].clone();
+            let mut mul_share = share1;
+            mul_share.mul(&share2).unwrap();
+            mul_share
+        })
+        .collect();
+
+    mul_shares
+}
+
+pub fn run_reciprocal_protocol(t: usize, artifacts: &KeyGenerationArtifacts) -> Vec<Secret> {
+    // === Given a secret x mod r which is shared among n players, it is
+    // === required to generate shares of inv(x) mod r with out revealing
+    // === any information about x or inv(x).
+    // === https://www.researchgate.net/publication/280531698_Robust_Threshold_Elliptic_Curve_Digital_Signature
+
+    // generate shared random secret e for given t
+    let n = artifacts.id_numbers.len();
+    assert!(t * 2 + 1 <= n);
+    let e_artifacts = run_key_generation(t, n, Some(artifacts.id_numbers.clone()), None);
+
+    // generate shares of zero for 2 * t threshold
+    let z_artifacts = run_zero_key_generation(2 * t, n, &artifacts.id_numbers);
+
+    // each player computes && broadcast u[i] = x[i] * e[i] + z[i]
+    let ui: Vec<_> = (0..n)
+        .map(|i| {
+            compute_ecdsa_inversed_secret_coeff_share(
+                &artifacts.secret_shares[i],
+                &e_artifacts.secret_shares[i],
+                &z_artifacts.secret_shares[i],
+            )
+            .unwrap()
+        })
+        .collect();
+
+    // players can interpolate the polynomial of degree 2t and compute u && inv(u):
+    let u_inv = compute_ecdsa_inversed_secret_coeff_from_shares(
+        t,
+        &artifacts
+            .id_numbers
+            .iter()
+            .take(2 * t + 1)
+            .cloned()
+            .collect::<Vec<_>>(),
+        &ui.iter().take(2 * t + 1).cloned().collect::<Vec<_>>(),
+    )
+    .unwrap();
+
+    // each player Pi computes his share of inv(x) as e[i] * inv(u)
+    let x_inv_shares: Vec<_> = (0..n)
+        .map(|i| {
+            let mut x_inv_share = e_artifacts.secret_shares[i].clone();
+            x_inv_share.mul(&u_inv).unwrap();
+            x_inv_share
+        })
+        .collect();
+
+    x_inv_shares
+}
+
+fn run_zero_key_generation(
+    t: usize,
+    n: usize,
+    id_numbers: &[Secret],
+) -> ZeroGenerationArtifacts {
+    // data, generated during keys dissemination
+    let polynoms1 = prepare_polynoms1(t, n, Some(zero_scalar()));
+    let secrets1: Vec<_> = (0..n)
+        .map(|i| {
+            (0..n)
+                .map(|j| compute_polynom(&polynoms1[i], &id_numbers[j]).unwrap())
+                .collect::<Vec<_>>()
+        })
+        .collect();
+
+    // data, generated during keys generation
+    let secret_shares: Vec<_> = (0..n)
+        .map(|i| compute_secret_share(secrets1.iter().map(|s| &s[i])).unwrap())
+        .collect();
+
+    ZeroGenerationArtifacts {
+        polynoms1: polynoms1,
+        secret_shares: secret_shares,
+    }
 }
 
 #[cfg(test)]
