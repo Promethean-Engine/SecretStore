@@ -8,14 +8,12 @@
 /// For more guidance on Substrate modules, see the example module
 /// https://github.com/paritytech/substrate/blob/master/srml/example/src/lib.rs
 
-extern crate parity_crypto as crypto;
+extern crate parity_crypto;
 extern crate parity_bytes as bytes;
+extern crate keccak_hash as hash;
 
 use codec::{Encode, Decode};
 
-mod database;
-mod types;
-mod net;
 
 // use database::PermissionDatabase;
 
