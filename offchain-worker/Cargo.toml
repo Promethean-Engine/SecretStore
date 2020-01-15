@@ -1,0 +1,11 @@
+[package]
+name = "ss-offchain"
+version = "0.1.0"
+authors = ["Andrew Plaza <aplaza@liquidthink.net>", "Sean Batzel <romulus108@protonmail.com>"]
+edition = "2018"
+
+[dependencies]
+sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "master" }
+
+
+
